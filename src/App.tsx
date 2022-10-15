@@ -24,14 +24,6 @@ function App() {
       },
 
       chart: {
-        tooltip: {
-          enabled: true,
-          enabledOnSeries: false,
-          followCursor: false,
-          x: {
-            show: false,
-          },
-        },
         background: "#282c34",
         height: 350,
         type: "line" as ApexChart["type"],
@@ -51,6 +43,9 @@ function App() {
         toolbar: {
           show: false,
         },
+      },
+      tooltip: {
+        enabled: false,
       },
       dataLabels: {
         enabled: false,
@@ -154,7 +149,7 @@ function App() {
           {start ? (
             <p>${btcPrice}</p>
           ) : (
-            <p onClick={() => setStart(true)}>Click here to start</p>
+            <p onClick={() => setStart(true)}>Click Here To Start</p>
           )}
         </div>
 
