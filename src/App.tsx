@@ -12,6 +12,29 @@ function App() {
 
   const [zoomLevel, setZoomLevel] = useState(6);
 
+  const { readyState, sendMessage, lastJsonMessage } = useWebSocket(
+    "wss://ws-feed.exchange.coinbase.com"
+  );
+
+  useEffect(() => {
+    const jsonBody = {
+      type: "subscribe",
+      product_ids: ["BTC-USD"],
+      channels: ["ticker"],
+    };
+
+    if (readyState === ReadyState.OPEN) {
+      sendMessage(JSON.stringify(jsonBody));
+    }
+  }, [readyState]);
+
+  useEffect(() => {
+    const price = parseFloat((lastJsonMessage as any)?.price);
+    if (price) {
+      setBtcPrice(price);
+    }
+  }, [lastJsonMessage]);
+
   const [state, setState] = useState({
     series: [
       {
@@ -56,9 +79,7 @@ function App() {
       stroke: {
         curve: "smooth" as ApexStroke["curve"],
       },
-      markers: {
-        size: 0,
-      },
+
       grid: {
         row: {
           colors: ["#f3f3f3", "#282c34"],
@@ -87,60 +108,36 @@ function App() {
     },
   });
 
-  const { readyState, sendMessage, lastJsonMessage } = useWebSocket(
-    "wss://ws-feed.exchange.coinbase.com"
-  );
-
-  useEffect(() => {
-    const jsonBody = {
-      type: "subscribe",
-      product_ids: ["BTC-USD"],
-      channels: ["ticker"],
-    };
-
-    // check if websocket is open
-    if (readyState === ReadyState.OPEN) {
-      sendMessage(JSON.stringify(jsonBody));
-    }
-  }, [readyState]);
-
-  useEffect(() => {
-    const price = parseFloat((lastJsonMessage as any)?.price);
-    if (price) {
-      setBtcPrice(price);
-    }
-  }, [lastJsonMessage]);
+  function updateChart() {
+    const currentPrice = btcPrice;
+    var audio = new Audio(beep);
+    audio.play();
+    console.log(state);
+    setState((prev) => {
+      console.log("pushing" + currentPrice);
+      let newState = JSON.parse(JSON.stringify(prev));
+      newState.options.yaxis.max = parseInt(String(btcPrice)) + zoomLevel;
+      newState.options.yaxis.min = parseInt(String(btcPrice)) - zoomLevel;
+      newState.options.chart.height = 100;
+      newState.series[0]["data"].push(currentPrice);
+      return newState;
+    });
+  }
 
   useEffect(() => {
     console.log(state);
+
     if (start) {
-      const timeout = setInterval(() => {
-        const currentPrice = btcPrice;
-        var audio = new Audio(beep);
-        // audio.play();
-        console.log(state);
-        setState((prev) => {
-          console.log("pushing" + currentPrice);
-          let newState = JSON.parse(JSON.stringify(prev));
-          newState.options.yaxis.max = parseInt(String(btcPrice)) + zoomLevel;
-          newState.options.yaxis.min = parseInt(String(btcPrice)) - zoomLevel;
-          newState.options.chart.height = 100;
-          newState.series[0]["data"].push(currentPrice);
-          return newState;
-        });
-
-        // Other approach, maybe more efficient?
-
-        // setState((prev) => {
-        //   const deepArrClone = JSON.parse(JSON.stringify(prev.series));
-        //   deepArrClone[0]["data"].push(btcPrice);
-        //   return { ...prev, series: deepArrClone };
-        // });
-      }, 1000);
-
+      const timeout = setInterval(updateChart, 1000);
       return () => clearInterval(timeout);
     }
   }, [state, start]);
+
+  useEffect(() => {
+    if (start) {
+      updateChart();
+    }
+  }, [start]);
 
   return (
     <div className="App">
