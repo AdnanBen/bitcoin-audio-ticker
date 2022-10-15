@@ -62,6 +62,8 @@ function App() {
   const [start, setStart] = useState(false);
   const [btcPrice, setBtcPrice] = React.useState(19120);
 
+  const [displayedbtcPrice, setDisplayedbtcPrice] = React.useState(19120);
+
   const [lastPrice, setLastPrice] = React.useState(0);
   const [audioKey, setAudioKey] = React.useState(11);
 
@@ -165,10 +167,10 @@ function App() {
 
   function updateChart() {
     const currentPrice = btcPrice;
+    setDisplayedbtcPrice(currentPrice);
     if (lastPrice !== 0) {
       let currentAudioKey = audioKey;
       const diff = currentPrice - lastPrice;
-      console.log(diff);
       if (diff > 0) {
         currentAudioKey += 1;
       } else if (diff < 0) {
@@ -181,9 +183,7 @@ function App() {
     }
 
     setLastPrice(currentPrice);
-    console.log(state);
     setState((prev) => {
-      console.log("pushing" + currentPrice);
       let newState = JSON.parse(JSON.stringify(prev));
       newState.options.yaxis.max = parseInt(String(btcPrice)) + zoomLevel;
       newState.options.yaxis.min = parseInt(String(btcPrice)) - zoomLevel;
@@ -194,8 +194,6 @@ function App() {
   }
 
   useEffect(() => {
-    console.log(state);
-
     if (start) {
       const timeout = setInterval(updateChart, bpm);
       return () => clearInterval(timeout);
@@ -213,7 +211,7 @@ function App() {
       <header className="App-header">
         <div className="header-text">
           {start ? (
-            <p>${btcPrice}</p>
+            <p>${displayedbtcPrice}</p>
           ) : (
             <p onClick={() => setStart(true)}>Click Here To Start</p>
           )}
@@ -221,7 +219,6 @@ function App() {
 
         <ReactApexChart
           onWheel={(e: any) => {
-            console.log(zoomLevel);
             if (e.deltaY == 100) {
               setZoomLevel((prev) => prev + 1);
             } else {
