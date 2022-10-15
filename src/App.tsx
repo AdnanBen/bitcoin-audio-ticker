@@ -15,7 +15,7 @@ function App() {
   const [state, setState] = useState({
     series: [
       {
-        data: [19080, 19080, 19082],
+        data: [],
       },
     ],
     options: {
@@ -96,18 +96,20 @@ function App() {
       console.log("new price is " + btcPrice);
 
       console.log(data.length);
-      // setState((prev) => {
-      //   let tempVar = JSON.parse(JSON.stringify(prev));
-      //   tempVar.series[0]["data"].push(btcPrice);
-      //   console.log(tempVar);
-      //   return tempVar;
-      // });
-
       setState((prev) => {
-        const deepArrClone = JSON.parse(JSON.stringify(prev.series));
-        deepArrClone[0]["data"].push(btcPrice);
-        return { ...prev, series: deepArrClone };
+        let newState = JSON.parse(JSON.stringify(prev));
+        newState.series[0]["data"].push(btcPrice);
+        console.log(newState);
+        return newState;
       });
+
+      // Other approach, maybe more efficient?
+
+      // setState((prev) => {
+      //   const deepArrClone = JSON.parse(JSON.stringify(prev.series));
+      //   deepArrClone[0]["data"].push(btcPrice);
+      //   return { ...prev, series: deepArrClone };
+      // });
     }, 1000);
 
     console.log(state);
