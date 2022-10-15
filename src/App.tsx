@@ -4,6 +4,7 @@ import "./App.css";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import Chart from "react-apexcharts";
 import ReactApexChart from "react-apexcharts";
+import beep from "./assets/key01.mp3";
 
 function App() {
   const [start, setStart] = useState(false);
@@ -21,7 +22,16 @@ function App() {
       theme: {
         mode: "dark" as ApexTheme["mode"],
       },
+
       chart: {
+        tooltip: {
+          enabled: true,
+          enabledOnSeries: false,
+          followCursor: false,
+          x: {
+            show: false,
+          },
+        },
         background: "#282c34",
         height: 350,
         type: "line" as ApexChart["type"],
@@ -43,6 +53,9 @@ function App() {
         },
       },
       dataLabels: {
+        enabled: false,
+      },
+      selection: {
         enabled: false,
       },
       stroke: {
@@ -97,32 +110,41 @@ function App() {
   }, [readyState]);
 
   useEffect(() => {
-    setBtcPrice(parseFloat((lastJsonMessage as any)?.price));
+    const price = parseFloat((lastJsonMessage as any)?.price);
+    if (price) {
+      setBtcPrice(price);
+    }
   }, [lastJsonMessage]);
 
   useEffect(() => {
-    const timeout = setInterval(() => {
-      if (start) {
+    console.log(state);
+    if (start) {
+      const timeout = setInterval(() => {
+        const currentPrice = btcPrice;
+        var audio = new Audio(beep);
+        // audio.play();
+        console.log(state);
         setState((prev) => {
+          console.log("pushing" + currentPrice);
           let newState = JSON.parse(JSON.stringify(prev));
           newState.options.yaxis.max = parseInt(String(btcPrice)) + zoomLevel;
           newState.options.yaxis.min = parseInt(String(btcPrice)) - zoomLevel;
           newState.options.chart.height = 100;
-          newState.series[0]["data"].push(btcPrice);
+          newState.series[0]["data"].push(currentPrice);
           return newState;
         });
-      }
 
-      // Other approach, maybe more efficient?
+        // Other approach, maybe more efficient?
 
-      // setState((prev) => {
-      //   const deepArrClone = JSON.parse(JSON.stringify(prev.series));
-      //   deepArrClone[0]["data"].push(btcPrice);
-      //   return { ...prev, series: deepArrClone };
-      // });
-    }, 1000);
+        // setState((prev) => {
+        //   const deepArrClone = JSON.parse(JSON.stringify(prev.series));
+        //   deepArrClone[0]["data"].push(btcPrice);
+        //   return { ...prev, series: deepArrClone };
+        // });
+      }, 1000);
 
-    return () => clearInterval(timeout);
+      return () => clearInterval(timeout);
+    }
   }, [state, start]);
 
   return (
