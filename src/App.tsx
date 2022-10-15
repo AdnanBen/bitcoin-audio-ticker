@@ -8,9 +8,8 @@ import ReactApexChart from "react-apexcharts";
 function App() {
   const [start, setStart] = useState(false);
   const [btcPrice, setBtcPrice] = React.useState(19120);
-  var audioUrl = "https://freewavesamples.com/files/Ensoniq-ESQ-1-Piano-C3.wav";
 
-  const [data, setData] = useState([19120, 19125]);
+  const [zoomLevel, setZoomLevel] = useState(6);
 
   const [state, setState] = useState({
     series: [
@@ -19,7 +18,11 @@ function App() {
       },
     ],
     options: {
+      theme: {
+        mode: "dark" as ApexTheme["mode"],
+      },
       chart: {
+        background: "#282c34",
         height: 350,
         type: "line" as ApexChart["type"],
         animations: {
@@ -50,25 +53,35 @@ function App() {
       },
       grid: {
         row: {
-          colors: ["#f3f3f3", "transparent"], // takes an array which will be repeated on columns
-          opacity: 0.5,
+          colors: ["#f3f3f3", "#282c34"],
+          opacity: 0.1,
         },
       },
       yaxis: {
         max: 19250,
-        min: 19190,
+        min: 19100,
       },
-      xaxis: { range: 10 },
+
+      xaxis: {
+        show: false,
+        labels: {
+          show: false,
+        },
+        axisBorder: {
+          color: "#282c34",
+          show: false,
+        },
+        axisTicks: {
+          show: false,
+        },
+        range: 13,
+      },
     },
   });
 
   const { readyState, sendMessage, lastJsonMessage } = useWebSocket(
     "wss://ws-feed.exchange.coinbase.com"
   );
-
-  useEffect(() => {
-    console.log("rerender");
-  });
 
   useEffect(() => {
     const jsonBody = {
@@ -84,24 +97,21 @@ function App() {
   }, [readyState]);
 
   useEffect(() => {
-    setBtcPrice((lastJsonMessage as any)?.price);
+    setBtcPrice(parseFloat((lastJsonMessage as any)?.price));
   }, [lastJsonMessage]);
 
   useEffect(() => {
-    // new Audio(audioUrl).play();
-  }, [btcPrice, setBtcPrice]);
-
-  useEffect(() => {
     const timeout = setInterval(() => {
-      console.log("new price is " + btcPrice);
-
-      console.log(data.length);
-      setState((prev) => {
-        let newState = JSON.parse(JSON.stringify(prev));
-        newState.series[0]["data"].push(btcPrice);
-        console.log(newState);
-        return newState;
-      });
+      if (start) {
+        setState((prev) => {
+          let newState = JSON.parse(JSON.stringify(prev));
+          newState.options.yaxis.max = parseInt(String(btcPrice)) + zoomLevel;
+          newState.options.yaxis.min = parseInt(String(btcPrice)) - zoomLevel;
+          newState.options.chart.height = 100;
+          newState.series[0]["data"].push(btcPrice);
+          return newState;
+        });
+      }
 
       // Other approach, maybe more efficient?
 
@@ -112,26 +122,42 @@ function App() {
       // });
     }, 1000);
 
-    console.log(state);
-
     return () => clearInterval(timeout);
-  }, [state]);
+  }, [state, start]);
 
   return (
-    // <div>
-    //   <header>
     <div className="App">
-      <header>
+      <header className="App-header">
+        <div className="header-text">
+          {start ? (
+            <p>${btcPrice}</p>
+          ) : (
+            <p onClick={() => setStart(true)}>Click here to start</p>
+          )}
+        </div>
+
         <ReactApexChart
+          onWheel={(e: any) => {
+            console.log(zoomLevel);
+            if (e.deltaY == 100) {
+              setZoomLevel((prev) => prev + 1);
+            } else {
+              setZoomLevel((prev) => {
+                if (prev > 1) {
+                  return prev - 1;
+                } else {
+                  return prev;
+                }
+              });
+            }
+          }}
+          className="chart"
           options={state.options}
           series={state.series}
-          height={1000}
+          height={"80%"}
         />
-        {start ? (
-          <p>Price is now ${btcPrice} USD</p>
-        ) : (
-          <p onClick={() => setStart(true)}>Click here to start</p>
-        )}
+
+        <p className="footer-text">{zoomLevel}</p>
       </header>
     </div>
   );
