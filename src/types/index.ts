@@ -15,7 +15,7 @@ export interface AudioControls {
     priceChangeMagnitude?: number,
     sustain?: boolean
   ) => void;
-  stopCurrentTone: () => void;
+  enableAudio: () => Promise<boolean>;
 }
 
 export interface PriceData {

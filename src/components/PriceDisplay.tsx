@@ -5,6 +5,7 @@ interface PriceDisplayProps {
   zoomLevel: number;
   started: boolean;
   onStart: () => void;
+  onEnableAudio: () => Promise<boolean>;
 }
 
 export const PriceDisplay: React.FC<PriceDisplayProps> = ({
@@ -12,14 +13,21 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
   zoomLevel,
   started,
   onStart,
+  onEnableAudio,
 }) => {
+  const handleStart = async () => {
+    const result = await onEnableAudio();
+    console.log("Audio enabled:", result);
+    onStart();
+  };
+
   return (
     <div className="header-text">
       <p
-        onClick={started ? undefined : onStart}
+        onClick={started ? undefined : handleStart}
         style={{ cursor: started ? "default" : "pointer" }}
       >
-        {started ? `$${price}` : "Click Here To Start"}
+        {started ? `$${price}` : "Click To Start"}
       </p>
       <p
         style={{
@@ -30,7 +38,7 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
           visibility: started ? "visible" : "hidden",
         }}
       >
-        Zoom: {zoomLevel}
+        Zoom: {zoomLevel} (Scroll/Pinch To Change)
       </p>
     </div>
   );

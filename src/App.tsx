@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import "./App.css";
 import { AudioSettings, BPM } from "./types";
 import { useAudioEngine } from "./hooks/useAudioEngine";
@@ -22,7 +22,9 @@ function App() {
     maxSustainDuration: 5000,
   });
 
-  const { playNote } = useAudioEngine(audioSettings);
+  const touchStartDistance = useRef<number>(0);
+
+  const { playNote, enableAudio } = useAudioEngine(audioSettings);
   const { btcPrice, displayedPrice, setDisplayedPrice } = useBitcoinPrice();
   const { chartState, zoomLevel, setZoomLevel, updateChart } = useChartUpdate();
   const {
@@ -57,16 +59,19 @@ function App() {
     setAudioSettings((prev) => ({ ...prev, ...newSettings }));
   };
 
-  const handleZoomChange = (delta: number) => {
-    setZoomLevel((prev: number) => {
-      if (delta > 0) {
-        return prev + 1;
-      } else if (prev > 1) {
-        return prev - 1;
-      }
-      return prev;
-    });
-  };
+  const handleZoomChange = useCallback(
+    (delta: number) => {
+      setZoomLevel((prev: number) => {
+        if (delta > 0) {
+          return prev + 1;
+        } else if (prev > 1) {
+          return prev - 1;
+        }
+        return prev;
+      });
+    },
+    [setZoomLevel]
+  );
 
   useEffect(() => {
     if (start) {
@@ -84,6 +89,49 @@ function App() {
     }
   }, [start, setDisplayedPrice]);
 
+  // Mobile pinch to zoom
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        touchStartDistance.current = Math.hypot(
+          touch2.clientX - touch1.clientX,
+          touch2.clientY - touch1.clientY
+        );
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const currentDistance = Math.hypot(
+          touch2.clientX - touch1.clientX,
+          touch2.clientY - touch1.clientY
+        );
+
+        const delta = currentDistance - touchStartDistance.current;
+
+        if (Math.abs(delta) > 10) {
+          handleZoomChange(delta > 0 ? -1 : 1);
+          touchStartDistance.current = currentDistance;
+        }
+      }
+    };
+
+    document.addEventListener("touchstart", handleTouchStart, {
+      passive: false,
+    });
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+
+    return () => {
+      document.removeEventListener("touchstart", handleTouchStart);
+      document.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, [handleZoomChange]);
+
   return (
     <div className="App">
       <header className="App-header">
@@ -92,6 +140,7 @@ function App() {
           zoomLevel={zoomLevel}
           started={start}
           onStart={() => setStart(true)}
+          onEnableAudio={enableAudio}
         />
 
         <ChartComponent

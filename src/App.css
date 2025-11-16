@@ -1,3 +1,10 @@
+body {
+  background-color: #282c34;
+  overscroll-behavior: none;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
 .App {
   text-align: center;
 }
@@ -16,6 +23,7 @@
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
   min-width: 100vw;
   display: flex;
   flex-direction: column;
@@ -23,10 +31,12 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 .chart {
-  width: 80%;
+  width: 90%;
 }
 
 .header-text > p {

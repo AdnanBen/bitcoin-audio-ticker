@@ -1,6 +1,10 @@
 import { useEffect, useRef } from "react";
 import { AudioSettings, AudioControls, SCALES } from "../types";
-import { getFrequency, getAudioContext } from "../utils/audio";
+import {
+  getFrequency,
+  getAudioContext,
+  resumeAudioContext,
+} from "../utils/audio";
 
 export const useAudioEngine = (settings: AudioSettings): AudioControls => {
   const { waveform, scale, baseOctave, volume, maxSustainDuration } = settings;
@@ -128,8 +132,12 @@ export const useAudioEngine = (settings: AudioSettings): AudioControls => {
     }
   };
 
+  const enableAudio = async (): Promise<boolean> => {
+    return await resumeAudioContext();
+  };
+
   return {
     playNote,
-    stopCurrentTone,
+    enableAudio,
   };
 };
