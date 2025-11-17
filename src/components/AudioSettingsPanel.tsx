@@ -35,6 +35,18 @@ export const AudioSettingsPanel: React.FC<AudioSettingsPanelProps> = ({
     { value: "chromatic", label: "Chromatic" },
   ];
 
+  const envelopeSpeedOptions = [
+    { value: "snappy", label: "Snappy" },
+    { value: "normal", label: "Normal" },
+    { value: "smooth", label: "Smooth" },
+  ];
+
+  const polyphonyOptions = [
+    { value: "single", label: "Single" },
+    { value: "harmony", label: "Harmony" },
+    { value: "chord", label: "Chord" },
+  ];
+
   return (
     <div
       style={{
@@ -150,6 +162,20 @@ export const AudioSettingsPanel: React.FC<AudioSettingsPanelProps> = ({
           onChange={(value) => onSettingsChange({ scale: value as ScaleType })}
         />
 
+        <SelectControl
+          label="Envelope Speed"
+          value={settings.envelopeSpeed}
+          options={envelopeSpeedOptions}
+          onChange={(value) => onSettingsChange({ envelopeSpeed: value as any })}
+        />
+
+        <SelectControl
+          label="Polyphony"
+          value={settings.polyphony}
+          options={polyphonyOptions}
+          onChange={(value) => onSettingsChange({ polyphony: value as any })}
+        />
+
         <SliderControl
           label="Max Note Length"
           value={settings.maxSustainDuration}
@@ -168,6 +194,46 @@ export const AudioSettingsPanel: React.FC<AudioSettingsPanelProps> = ({
           step={1}
           onChange={(value) => onSettingsChange({ baseOctave: value })}
           formatValue={(value) => value.toString()}
+        />
+
+        <SliderControl
+          label="Speed (BPM)"
+          value={settings.bpm}
+          min={100}
+          max={2000}
+          step={50}
+          onChange={(value) => onSettingsChange({ bpm: value })}
+          formatValue={(value) => `${value}ms`}
+        />
+
+        <SliderControl
+          label="Reverb"
+          value={settings.reverb * 100}
+          min={0}
+          max={100}
+          step={5}
+          onChange={(value) => onSettingsChange({ reverb: value / 100 })}
+          formatValue={(value) => `${Math.round(value)}%`}
+        />
+
+        <SliderControl
+          label="Pitch Shift"
+          value={settings.pitchShift}
+          min={0.5}
+          max={2.0}
+          step={0.1}
+          onChange={(value) => onSettingsChange({ pitchShift: value })}
+          formatValue={(value) => `${value.toFixed(1)}x`}
+        />
+
+        <SliderControl
+          label="Sustain Depth"
+          value={settings.sustainDepth * 100}
+          min={0}
+          max={100}
+          step={5}
+          onChange={(value) => onSettingsChange({ sustainDepth: value / 100 })}
+          formatValue={(value) => `${Math.round(value)}%`}
         />
       </div>
     </div>

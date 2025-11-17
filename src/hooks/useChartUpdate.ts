@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from "react";
-import { ChartState, SCALES, ScaleType, BPM } from "../types";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { ChartState, SCALES, ScaleType } from "../types";
 import { ApexOptions } from "apexcharts";
 
 interface ChartUpdateHook {
@@ -15,7 +15,7 @@ interface ChartUpdateHook {
   currentNoteIndex: React.MutableRefObject<number>;
 }
 
-export const useChartUpdate = (): ChartUpdateHook => {
+export const useChartUpdate = (bpm: number = 700): ChartUpdateHook => {
   const [zoomLevel, setZoomLevel] = useState(5);
   const currentNoteIndex = useRef(5);
   const lastPriceRef = useRef(0);
@@ -39,7 +39,7 @@ export const useChartUpdate = (): ChartUpdateHook => {
           enabled: true,
           easing: "linear",
           dynamicAnimation: {
-            speed: BPM,
+            speed: bpm,
           },
         },
         zoom: {
@@ -87,6 +87,14 @@ export const useChartUpdate = (): ChartUpdateHook => {
       },
     } as ApexOptions,
   });
+
+  useEffect(() => {
+    setChartState((prev) => {
+      const newState = JSON.parse(JSON.stringify(prev));
+      newState.options.chart.animations.dynamicAnimation.speed = bpm;
+      return newState;
+    });
+  }, [bpm]);
 
   const updateChart = useCallback(
     (

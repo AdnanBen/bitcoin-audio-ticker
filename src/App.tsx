@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import "./App.css";
-import { AudioSettings, BPM } from "./types";
+import { AudioSettings } from "./types";
 import { useAudioEngine } from "./hooks/useAudioEngine";
 import { useBitcoinPrice } from "./hooks/useBitcoinPrice";
 import { useChartUpdate } from "./hooks/useChartUpdate";
@@ -20,13 +20,19 @@ function App() {
     volume: 0.05,
     minPriceChange: 0,
     maxSustainDuration: 5000,
+    bpm: 700,
+    reverb: 0,
+    envelopeSpeed: "normal",
+    pitchShift: 1.0,
+    sustainDepth: 0.7,
+    polyphony: "single",
   });
 
   const touchStartDistance = useRef<number>(0);
 
   const { playNote, enableAudio } = useAudioEngine(audioSettings);
   const { btcPrice, displayedPrice, setDisplayedPrice } = useBitcoinPrice();
-  const { chartState, zoomLevel, setZoomLevel, updateChart } = useChartUpdate();
+  const { chartState, zoomLevel, setZoomLevel, updateChart } = useChartUpdate(audioSettings.bpm);
   const {
     settingsCollapsed,
     isOpening,
@@ -83,11 +89,11 @@ function App() {
           scaleRef.current,
           playNoteRef.current
         );
-      }, BPM);
+      }, audioSettings.bpm);
 
       return () => clearInterval(interval);
     }
-  }, [start, setDisplayedPrice]);
+  }, [start, setDisplayedPrice, audioSettings.bpm]);
 
   // Mobile pinch to zoom
   useEffect(() => {

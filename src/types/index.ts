@@ -1,4 +1,6 @@
 export type ScaleType = "pentatonic" | "major" | "minor" | "chromatic";
+export type EnvelopeSpeed = "snappy" | "normal" | "smooth";
+export type PolyphonyMode = "single" | "harmony" | "chord";
 
 export interface AudioSettings {
   waveform: OscillatorType;
@@ -7,6 +9,12 @@ export interface AudioSettings {
   volume: number;
   minPriceChange: number;
   maxSustainDuration: number;
+  bpm: number;
+  reverb: number;
+  envelopeSpeed: EnvelopeSpeed;
+  pitchShift: number;
+  sustainDepth: number;
+  polyphony: PolyphonyMode;
 }
 
 export interface AudioControls {
